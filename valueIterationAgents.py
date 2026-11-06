@@ -10,7 +10,7 @@
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
 # Student side autograding was added by Brad Miller, Nick Hay, and
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
-
+import copy
 
 # valueIterationAgents.py
 # -----------------------
@@ -31,6 +31,7 @@ import mdp, util
 from learningAgents import ValueEstimationAgent
 import collections
 
+
 class ValueIterationAgent(ValueEstimationAgent):
     """
         * Please read learningAgents.py before reading this.*
@@ -40,7 +41,8 @@ class ValueIterationAgent(ValueEstimationAgent):
         for a given number of iterations using the supplied
         discount factor.
     """
-    def __init__(self, mdp, discount = 0.9, iterations = 100):
+
+    def __init__(self, mdp, discount=0.9, iterations=100):
         """
           Your value iteration agent should take an mdp on
           construction, run the indicated number of iterations
@@ -56,37 +58,44 @@ class ValueIterationAgent(ValueEstimationAgent):
         self.mdp = mdp
         self.discount = discount
         self.iterations = iterations
-        self.values = util.Counter() # A Counter is a dict with default 0
+        self.values = util.Counter()  # A Counter is a dict with default 0
         self.runValueIteration()
 
     def runValueIteration(self):
         # Write value iteration code here
         "*** YOUR CODE HERE ***"
-        for teller in range(self.iterations):
-            new_values = util.Counter()
-            for state in self.mdp.getStates():
+        states = self.mdp.getStates()
+        T_func = self.mdp.getTransitionStatesAndProbs
+        reward = self.mdp.getReward
+        discount_factor = self.discount
+        iterations = self.iterations
+
+        for i in range(iterations):
+            # new_values = util.Counter() -- wat bedoelde je met dit?
+            curr_val = copy.deepcopy(self.values)
+
+            for state in states:
                 if self.mdp.isTerminal(state):
                     continue
-                action_values = []
+
+                sumPerAction = []
                 for action in self.mdp.getPossibleActions(state):
-                    Vstate = sum(
-                        getTransitionStatesAndProbs * (
-                            self.mdp.getReward(state, action, next_state)
-                            + self.discount * self.values[next_state])
-                        for next_state, getTransitionStatesAndProbs in self.mdp.getTransitionStatesAndProbs(state, action))
-                    action_values.append(Vstate)
+                    # aangepast want het moest ook per state
 
-                if action_values:
-                    new_values[state] = max(action_values)
+                    summation = 0  # summation is de uitkomst van de hele Σ_{s’} voor één actie
+                    for nextState, prob in T_func(state, action):  # Σ_{s'}: loop over alle s'
+                        X = reward(state, action, nextState) + discount_factor * curr_val[nextState]  # [R + γ V_k(s')]
+                        Y = prob * X  # T(s,a,s') * [...],  één term van de Σ
+                        summation += Y  # Σ opbouwen
 
-            self.values = new_values
+                    sumPerAction.append(summation)  # sum van deze action
+                self.values[state] = max(sumPerAction)  # max van alle resultaten
 
     def getValue(self, state):
         """
           Return the value of the state (computed in __init__).
         """
         return self.values[state]
-
 
     def computeQValueFromValues(self, state, action):
         """
@@ -125,12 +134,12 @@ class ValueIterationAgent(ValueEstimationAgent):
 
             for next_state, prob in self.mdp.getTransitionStatesAndProbs(state, action):
                 reward = self.mdp.getReward(state, action, next_state)
-                qvalue += prob*(reward + self.discount * self.values[next_state])
+                qvalue += prob * (reward + self.discount * self.values[next_state])
 
             if qvalue > bestValue:
                 bestValue = qvalue
                 BestAction = action
-        return BestAction       
+        return BestAction
 
     def getPolicy(self, state):
         return self.computeActionFromValues(state)
@@ -142,6 +151,7 @@ class ValueIterationAgent(ValueEstimationAgent):
     def getQValue(self, state, action):
         return self.computeQValueFromValues(state, action)
 
+
 class AsynchronousValueIterationAgent(ValueIterationAgent):
     """
         * Please read learningAgents.py before reading this.*
@@ -151,7 +161,8 @@ class AsynchronousValueIterationAgent(ValueIterationAgent):
         for a given number of iterations using the supplied
         discount factor.
     """
-    def __init__(self, mdp, discount = 0.9, iterations = 1000):
+
+    def __init__(self, mdp, discount=0.9, iterations=1000):
         """
           Your cyclic value iteration agent should take an mdp on
           construction, run the indicated number of iterations,
@@ -172,6 +183,7 @@ class AsynchronousValueIterationAgent(ValueIterationAgent):
     def runValueIteration(self):
         "*** YOUR CODE HERE ***"
 
+
 class PrioritizedSweepingValueIterationAgent(AsynchronousValueIterationAgent):
     """
         * Please read learningAgents.py before reading this.*
@@ -180,7 +192,8 @@ class PrioritizedSweepingValueIterationAgent(AsynchronousValueIterationAgent):
         (see mdp.py) on initialization and runs prioritized sweeping value iteration
         for a given number of iterations using the supplied parameters.
     """
-    def __init__(self, mdp, discount = 0.9, iterations = 100, theta = 1e-5):
+
+    def __init__(self, mdp, discount=0.9, iterations=100, theta=1e-5):
         """
           Your prioritized sweeping value iteration agent should take an mdp on
           construction, run the indicated number of iterations,
@@ -191,4 +204,3 @@ class PrioritizedSweepingValueIterationAgent(AsynchronousValueIterationAgent):
 
     def runValueIteration(self):
         "*** YOUR CODE HERE ***"
-
