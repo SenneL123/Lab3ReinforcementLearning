@@ -374,3 +374,5 @@ python pacman.py -p ApproximateQAgent -a extractor=SimpleExtractor -x 50 -n 60 -
 ---
 
 The assignment and code in this project are adapted from the Pac-Man projects developed at [UC Berkeley](http://ai.berkeley.edu) for [CS 188](https://inst.eecs.berkeley.edu/~cs188/fa26/projects/).
+#   L a b 3 R e i n f o r c e m e n t L e a r n i n g  
+ 
