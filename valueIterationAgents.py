@@ -118,7 +118,7 @@ class ValueIterationAgent(ValueEstimationAgent):
             return None
 
         BestAction = None
-        bestValue = ('-inf')
+        bestValue = float('-inf')
 
         for action in PossibleActions:
             qvalue = 0
