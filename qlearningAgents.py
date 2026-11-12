@@ -16,7 +16,8 @@ from game import *
 from learningAgents import ReinforcementAgent
 from featureExtractors import *
 
-import random,util,math
+import random, util, math
+
 
 class QLearningAgent(ReinforcementAgent):
     """
@@ -38,23 +39,32 @@ class QLearningAgent(ReinforcementAgent):
         - self.getLegalActions(state)
           which returns legal actions for a state
     """
+
+    # slide 33
+    # Q(s,a) ← Q(s,a) + α( R + γ · max Q(s',a') − Q(s,a) )
     def __init__(self, **args):
         "You can initialize Q-values here..."
         ReinforcementAgent.__init__(self, **args)
 
         "*** YOUR CODE HERE ***"
+        self.qValues = util.Counter()  # tabel die elk (state, action) paar koppelt aan een Q-waarde
 
-    def getQValue(self, state, action):
+    # Q(s, a)
+    def getQValue(self, state, action):  # hoe goed is deze actie in deze state
         """
           Returns Q(state,action)
           Should return 0.0 if we have never seen a state
           or the Q node value otherwise
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        if (state, action) not in self.qValues:
+            return 0.0
+        else:
+            return self.qValues[(state, action)]
 
-
-    def computeValueFromQValues(self, state):
+    # max Q(s',a')
+    def computeValueFromQValues(self, state):  # hoe goed is deze state als ik de beste actie neem
+        # (je kijkt naar alle acties en neemt de beste)
         """
           Returns max_action Q(state,action)
           where the max is over legal actions.  Note that if
@@ -62,16 +72,29 @@ class QLearningAgent(ReinforcementAgent):
           terminal state, you should return a value of 0.0.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        allActions = self.getLegalActions(state)
+        if not allActions:
+            return 0.0
+        return max(self.getQValue(state, action) for action in allActions)
 
-    def computeActionFromQValues(self, state):
+    def computeActionFromQValues(self, state):  # welke actie moet ik kiezen in deze state om beste Q-waarde te krijgen
         """
           Compute the best action to take in a state.  Note that if there
           are no legal actions, which is the case at the terminal state,
           you should return None.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        allActions = self.getLegalActions(state)
+        listOfBestActions = []
+        if not allActions:
+            return None
+        maxVal = self.computeValueFromQValues(state)
+        # Maak een lijstje van alle acties waarvan self.getQValue(state, a) gelijk is aan die hoogste waarde.
+        for a in allActions:
+            if self.getQValue(state, a) == maxVal:
+                listOfBestActions.append(a)
+
+        return random.choice(listOfBestActions)  # kies willekeurig een van de beste acties uit het lijstje
 
     def getAction(self, state):
         """
@@ -114,7 +137,7 @@ class QLearningAgent(ReinforcementAgent):
 class PacmanQAgent(QLearningAgent):
     "Exactly the same as QLearningAgent, but with different default parameters"
 
-    def __init__(self, epsilon=0.05,gamma=0.8,alpha=0.2, numTraining=0, **args):
+    def __init__(self, epsilon=0.05, gamma=0.8, alpha=0.2, numTraining=0, **args):
         """
         These default parameters can be changed from the pacman.py command line.
         For example, to change the exploration rate, try:
@@ -138,8 +161,8 @@ class PacmanQAgent(QLearningAgent):
         informs parent of action for Pacman.  Do not change or remove this
         method.
         """
-        action = QLearningAgent.getAction(self,state)
-        self.doAction(state,action)
+        action = QLearningAgent.getAction(self, state)
+        self.doAction(state, action)
         return action
 
 
@@ -151,6 +174,7 @@ class ApproximateQAgent(PacmanQAgent):
        and update.  All other QLearningAgent functions
        should work as is.
     """
+
     def __init__(self, extractor='IdentityExtractor', **args):
         self.featExtractor = util.lookup(extractor, globals())()
         PacmanQAgent.__init__(self, **args)
