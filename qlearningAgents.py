@@ -112,8 +112,11 @@ class QLearningAgent(ReinforcementAgent):
         legalActions = self.getLegalActions(state)
         action = None
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
-
+        if util.flipCoin(self.epsilon):
+            action = random.choice(legalActions)
+        else:
+            action = self.computeActionFromQValues(state)
+        
         return action
 
     # nieuw = oud + α · (verschil)
@@ -133,7 +136,7 @@ class QLearningAgent(ReinforcementAgent):
         fout = sample - oldVal
         newVal = oldVal + self.alpha * fout
         # kopieer de nieuwe waarde naar de qValues tabel
-        return self.qValues[(state, action)] == newVal
+        self.qValues[(state, action)] = newVal
 
     def getPolicy(self, state):
         return self.computeActionFromQValues(state)
