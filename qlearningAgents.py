@@ -77,6 +77,7 @@ class QLearningAgent(ReinforcementAgent):
             return 0.0
         return max(self.getQValue(state, action) for action in allActions)
 
+    # geen deel vd formule, leert Q-values en gebruikt ze om actie te kiezen
     def computeActionFromQValues(self, state):  # welke actie moet ik kiezen in deze state om beste Q-waarde te krijgen
         """
           Compute the best action to take in a state.  Note that if there
@@ -115,6 +116,8 @@ class QLearningAgent(ReinforcementAgent):
 
         return action
 
+    # nieuw = oud + α · (verschil)
+    # Q(s,a) ← Q(s,a) + α( R + γ · max Q(s',a') − Q(s,a) )
     def update(self, state, action, nextState, reward):
         """
           The parent class calls this to observe a
@@ -125,7 +128,12 @@ class QLearningAgent(ReinforcementAgent):
           it will be called on your behalf
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        oldVal = self.getQValue(state, action)
+        sample = reward + self.discount * self.computeValueFromQValues(nextState)
+        fout = sample - oldVal
+        newVal = oldVal + self.alpha * fout
+        # kopieer de nieuwe waarde naar de qValues tabel
+        return self.qValues[(state, action)] == newVal
 
     def getPolicy(self, state):
         return self.computeActionFromQValues(state)
